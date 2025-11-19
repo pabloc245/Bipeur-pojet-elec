@@ -16,3 +16,11 @@ void loop() {
 int myFunction(int x, int y) {
   return x + y;
 }
+
+void envoyerUnMessage(){
+  // miojezhfi
+  // amezjkfnmn
+  // mkLJNCEMLKN
+  // MKQZERKN
+  
+}
