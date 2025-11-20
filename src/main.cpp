@@ -24,3 +24,8 @@ void envoyerUnMessage(){
   // MKQZERKN
   
 }
+
+  // amezjkfnmn
+  // mkLJNCEMLKN
+  // MKQZERKN
+  
