@@ -5,16 +5,16 @@
 #define LED_ROUGE 5
 #define BOUTON_PIN A6
 
-#define TEST_ASSERT_HIGH_WITHIN(var_func, timeout_ms)                \
-    do {                                                              \
-        unsigned long start = millis();                               \
-        int state = 0;                                                \
-        while ((millis() - start) < (timeout_ms)) {                   \
-            state = (var_func);                                       \
+#define TEST_ASSERT_HIGH_WITHIN(var_func, timeout_ms)               \
+    do {                                                            \
+        unsigned long start = millis();                             \
+        int state = 0;                                              \
+        while ((millis() - start) < (timeout_ms)) {                 \
+            state = (var_func);                                     \
             if (state > 200) break;                                 \
-        }                                                             \
+        }                                                           \
         TEST_ASSERT_EQUAL_INT_MESSAGE(200, state,                   \
-            "Condition HIGH non atteinte dans le temps imparti");    \
+            "Condition HIGH non atteinte dans le temps imparti");   \
     } while(0)
 
 void setUp(void) {
@@ -35,11 +35,7 @@ void test_led_RGB() {
   TEST_ASSERT_HIGH_WITHIN(analogRead(BOUTON_PIN), 2000);
 }
 
-void test_messege() {
-  #if UNO1
-  //iljzrfj
-  #endif
-  
+void test_messege() {  
   digitalWrite(LED_ROUGE, HIGH);
   TEST_ASSERT_HIGH_WITHIN(analogRead(BOUTON_PIN), 2000);
 }
@@ -51,6 +47,8 @@ void setup() {
   UNITY_BEGIN();
   UnityPrint("quelque chose s'est passé !");
   RUN_TEST(test_serial_begin);
+  //UNITY_PRINT("Action Requise: appuyer sur le bouton si la LED s'allume");
+  Serial.println("Action Requise: appuyer sur le bouton si la LED s'allume");
   RUN_TEST(test_led_RGB);
   UNITY_END();
 }
