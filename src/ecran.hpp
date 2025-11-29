@@ -9,5 +9,6 @@ const static uint8_t  SCREEN_HEIGHT = 64;
 
 void affichage();
 void innitDisplay();
+void clavier();
 
 #endif

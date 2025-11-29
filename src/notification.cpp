@@ -21,7 +21,7 @@ NRFLite _radio;
 
 void innitRadio(){
   if (!_radio.init(RADIO_ID, PIN_RADIO_CE, PIN_RADIO_CSN)){
-    Serial.println("Cannot communicate with radio");
+    Serial.println(F("Cannot communicate with radio"));
     while (1); // Wait here forever.
   }else{
     Serial.println(F("NRF24XX allocation successful"));
@@ -32,7 +32,7 @@ void innitRadio(){
 
 int add(Buffer *buffer, Notification new_notification) {
     if (buffer->taille >= buffer->limite_max) {
-        Serial.println("Buffer plein (limite: 255)");
+        Serial.println(F("Buffer plein (limite: 255)"));
         return -1;
     }    
     buffer->notifications[buffer->taille] = new_notification;
@@ -43,7 +43,7 @@ int add(Buffer *buffer, Notification new_notification) {
 void afficherNotifications(Buffer *buffer) {
     for (uint8_t i = 0; i < buffer->taille; i++) {
         Notification notif = buffer->notifications[i];
-        Serial.print("Notification reçu de : ");
+        Serial.print(F("Notification reçu de : "));
         Serial.print(notif.id);
         Serial.print(" - ");
         Serial.print(notif.timestamp);  
