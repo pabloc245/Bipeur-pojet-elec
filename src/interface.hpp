@@ -9,8 +9,11 @@ const static uint8_t  BUZZER = 10;
 
 
 void updateEncoder(void);
+void innitStates(void);
 void updateButton(void);
 int getEncoder(void);
 void updateButton();
-uint8_t bouton();
+bool bouton(uint8_t bouton, uint8_t select);
+void resetEvents(void);
+uint8_t brut();
 #endif

@@ -46,11 +46,11 @@ void clavier(){
   int curseur[2] = {getEncoder() & 0b111, (getEncoder() >>3)& 0b11};
   display.setCursor(15, 0);
   display.print(message);
-  if(bouton() & (1<<0) && cursor_pos < 126){
+  if(bouton(0, ETAT) && cursor_pos < 126){
     message[cursor_pos] = AZERTY[curseur[1]][curseur[0]];
     cursor_pos++;
   }
-  uint8_t majuscule = bouton() & (1<<2)? 0 : 32;
+  uint8_t majuscule = bouton(0, ETAT) ? 0 : 32;
   for (uint8_t i = 0; i < 4; i++){
     for(uint8_t j= 0; j< 8; j++){
       display.setCursor(j*LARGEUR_CASE , i*HAUTEUR_CASE+15);

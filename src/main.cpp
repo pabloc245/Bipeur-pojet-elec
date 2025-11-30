@@ -14,6 +14,7 @@ enum Etats {
   BUZZER_ON
 };
 
+
 Etats state = CLAVIER;
 
 /// Setup 
@@ -23,6 +24,7 @@ void setup() {
 
   innitDisplay();
   innitRadio();
+  innitStates();
 
   attachInterrupt(digitalPinToInterrupt(pinA), updateEncoder, RISING);
   pinMode(5, OUTPUT);
@@ -37,11 +39,11 @@ void setup() {
 }
 
 
-
 /// Loop 
 void loop() {
-  bouton();
   updateButton();
+
+
   switch(state){
     case IDLE:
       testRF();
@@ -60,4 +62,6 @@ void loop() {
     default:
       break;
   }  
+  
+  resetEvents();
 }
