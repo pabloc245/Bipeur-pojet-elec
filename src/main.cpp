@@ -1,24 +1,18 @@
 #include "notification.hpp"
 #include "ecran.hpp"
 #include "interface.hpp"
-
+#include <Arduino.h>
 int  i;
 bool selected = false;
  
 Buffer buffer_notifications = {0, 32, {}};
 
-enum Etats {
-  IDLE,
-  CLAVIER,
-  DISPLAY_NOTIF,
-  BUZZER_ON
-};
-
-
-Etats state = CLAVIER;
+Etats stt = IDLE;
+volatile uint8_t ctn = 0;
 
 /// Setup 
 void setup() {
+  attachInterrupt(digitalPinToInterrupt(pinA), updateEncoder, CHANGE);
   Serial.begin(9600);
   SPI.begin();
 
@@ -26,7 +20,6 @@ void setup() {
   innitRadio();
   innitStates();
 
-  attachInterrupt(digitalPinToInterrupt(pinA), updateEncoder, RISING);
   pinMode(5, OUTPUT);
   pinMode(6, OUTPUT);
   pinMode(9, OUTPUT);
@@ -35,33 +28,32 @@ void setup() {
   pinMode(pinA, INPUT);
   pinMode(pinB, INPUT);
   digitalWrite(BUZZER, LOW);
-  delay(2000);
+  delay(1000);
 }
 
 
 /// Loop 
 void loop() {
+  Serial.println(getEncoder());
   updateButton();
 
 
-  switch(state){
+  if(digitalRead(pinA))
+  Serial.println("yvgbuhk");
+  switch(stt){
     case IDLE:
-      testRF();
+      stt = menu();
       break;
     case CLAVIER:
       clavier();
       break;
     case DISPLAY_NOTIF:
       selected = !selected;
-      tone(BUZZER, 1000, 200);
       break;
     case BUZZER_ON:
-      digitalWrite(BUZZER, HIGH); 
-      delay(500);
       break;
     default:
       break;
-  }  
-  
-  resetEvents();
+  }
+  resetEvents();  
 }

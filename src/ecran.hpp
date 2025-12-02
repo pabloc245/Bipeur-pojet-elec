@@ -7,13 +7,16 @@
 const static uint8_t  SCREEN_WIDTH = 128; 
 const static uint8_t  SCREEN_HEIGHT = 64;
 
-enum Methode{
-  ETAT = 0,
-  SELECTION = 2,
-  DOUBLE = 6
+enum Etats {
+  IDLE = -1,
+  CLAVIER = 0,
+  DISPLAY_NOTIF = 1,
+  BUZZER_ON
 };
 
+
 void affichage();
+Etats menu();
 void innitDisplay();
 void clavier();
 

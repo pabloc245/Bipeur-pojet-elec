@@ -5,38 +5,32 @@
 #define TOGGLE_BIT(X, Y)  X ^= (1 << Y)
 #define READ_PIN(X) ((PIND & (1 << X))!=0)
 
+int dernierA = LOW;
 unsigned long vitesse1, vitesse2;
 
-typedef struct {
-    volatile int position;
-    volatile uint8_t bouton;
-}Encoder;
-
-volatile Encoder encoderData = {0, false};
-volatile int  pos = 0;
-int dernierA = LOW;
+volatile uint8_t boutonState;
+volatile uint8_t pos = 0;
 
 
-void innitStates(void){
-  encoderData.position = 0;
-  SET_BIT(encoderData.bouton, 4);
-  SET_BIT(encoderData.bouton, 5);
+
+
+uint8_t getEncoder(void) {
+  return pos;
 }
 
-int getEncoder(void) {
-  return encoderData.position;
+void innitStates(void){
+  SET_BIT(boutonState, 4);
+  SET_BIT(boutonState, 5);
 }
 
 void updateEncoder(void) {
-    
-  if((READ_PIN(pinA)) != dernierA){  
+  if((READ_PIN(pinA)) != LOW){  
     if(digitalRead(pinB) != HIGH){
-      encoderData.position--;
+      pos--;
     }else {
-      encoderData.position++;
+      pos++;
     }
   }
-  dernierA = LOW;  
 }
 
 //B1: bouton SW3 (analogique)
@@ -55,50 +49,52 @@ void updateEncoder(void) {
 
 void updateButton(){
   int SW3 = analogRead(A6);
-
+  
   //bouton SW3
-  if (SW3 > 100 && ((encoderData.bouton & (1<<4)) == 0)) {// Front montant
-    TOGGLE_BIT(encoderData.bouton, 2);
-    RESET_BIT(encoderData.bouton, 0);
+  if (SW3 > 100 && ((boutonState & (1<<4)) == 0)) {// Front montant
+    TOGGLE_BIT(boutonState, 2);
+    RESET_BIT(boutonState, 0);
     if (millis() - vitesse1 < 400) {
-      SET_BIT(encoderData.bouton, 6);
+      SET_BIT(boutonState, 6);
     }
     vitesse1 = millis();
-  }else if (SW3 < 100 && (encoderData.bouton & (1<<4))) {// Front DESCENDANT
-    SET_BIT(encoderData.bouton, 0);
+  }else if (SW3 < 100 && (boutonState & (1<<4))) {// Front DESCENDANT
+    SET_BIT(boutonState, 0);
   }
 
 
   int SW2 = READ_PIN(2);
   //bouton SW2
-  if (SW2 && ((encoderData.bouton & (1<<5)) == 0)) {// Front montant
-    TOGGLE_BIT(encoderData.bouton, 3);
-    RESET_BIT(encoderData.bouton, 1);
+  if (SW2 && ((boutonState & (1<<5)) == 0)) {// Front montant
+    TOGGLE_BIT(boutonState, 3);
+    RESET_BIT(boutonState, 1);
     if (millis() - vitesse2 < 400) {
-      SET_BIT(encoderData.bouton, 7);
+      SET_BIT(boutonState, 7);
     }
     vitesse2 = millis();
-  }else if (!SW2 && (encoderData.bouton & (1<<5))) {// Front DESCENDANT
-    SET_BIT(encoderData.bouton, 1);
+  }else if (!SW2 && (boutonState & (1<<5))) {// Front DESCENDANT
+    SET_BIT(boutonState, 1);
   }
   
-  SW3 > 100 ? SET_BIT(encoderData.bouton, 4) : RESET_BIT(encoderData.bouton, 4);
-  SW2 == HIGH ? SET_BIT(encoderData.bouton, 5) : RESET_BIT(encoderData.bouton, 5);
+  SW3 > 100 ? SET_BIT(boutonState, 4) : RESET_BIT(boutonState, 4);
+  SW2 == HIGH ? SET_BIT(boutonState, 5) : RESET_BIT(boutonState, 5);
 }
 
 bool bouton(uint8_t bouton, uint8_t select){
-  if (encoderData.bouton & (1<<int(bouton+select))){
+  if (bouton & (1<<int(bouton+select))){
     return true;
   }
   return false;
 }
 
 uint8_t brut(){
-  return encoderData.bouton;
+  return boutonState;
 }
 void resetEvents(){
-  RESET_BIT(encoderData.bouton, 0);
-  RESET_BIT(encoderData.bouton, 1);
-  RESET_BIT(encoderData.bouton, 6);
-  RESET_BIT(encoderData.bouton, 7);
+  RESET_BIT(boutonState, 0);
+  RESET_BIT(boutonState, 1);
+  RESET_BIT(boutonState, 6);
+  RESET_BIT(boutonState, 7);
 }
+
+

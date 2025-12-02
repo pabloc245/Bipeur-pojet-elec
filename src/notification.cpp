@@ -41,17 +41,18 @@ int add(Buffer *buffer, Notification new_notification) {
 }
 
 void afficherNotifications(Buffer *buffer) {
-    for (uint8_t i = 0; i < buffer->taille; i++) {
-        Notification notif = buffer->notifications[i];
-        Serial.print(F("Notification reçu de : "));
-        Serial.print(notif.id);
-        Serial.print(" - ");
-        Serial.print(notif.timestamp);  
-        Serial.print(" - ");
-        Serial.println(notif.message);
-    }
-    buffer->taille = 0;
-}
+  for (uint8_t i = 0; i < buffer->taille; i++) {
+    Notification notif = buffer->notifications[i];
+    Serial.print(F("Notification reçu de : "));
+    Serial.print(notif.id);
+    Serial.print(" - ");
+    Serial.print(notif.timestamp);  
+    Serial.print(" - ");
+    Serial.println(notif.message);
+    
+  }
+  buffer->taille = 0;
+  }
 
 void testRF(){
   

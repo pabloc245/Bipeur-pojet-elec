@@ -8,10 +8,19 @@ const static uint8_t  pinB = 4;
 const static uint8_t  BUZZER = 10;
 
 
+enum Methode{
+  ETAT = 0,
+  SELECTION = 2,
+  DOUBLE = 6
+};
+
+//ETAT = Valeur instantanné
+
 void updateEncoder(void);
+
 void innitStates(void);
 void updateButton(void);
-int getEncoder(void);
+uint8_t getEncoder(void);
 void updateButton();
 bool bouton(uint8_t bouton, uint8_t select);
 void resetEvents(void);
