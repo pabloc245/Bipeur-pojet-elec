@@ -5,33 +5,8 @@
 #define TOGGLE_BIT(X, Y)  X ^= (1 << Y)
 #define READ_PIN(X) ((PIND & (1 << X))!=0)
 
-int dernierA = LOW;
-unsigned long vitesse1, vitesse2;
-
-volatile uint8_t boutonState;
+uint8_t boutonState;
 volatile uint8_t pos = 0;
-
-
-
-
-uint8_t getEncoder(void) {
-  return pos;
-}
-
-void innitStates(void){
-  SET_BIT(boutonState, 4);
-  SET_BIT(boutonState, 5);
-}
-
-void updateEncoder(void) {
-  if((READ_PIN(pinA)) != LOW){  
-    if(digitalRead(pinB) != HIGH){
-      pos--;
-    }else {
-      pos++;
-    }
-  }
-}
 
 //B1: bouton SW3 (analogique)
 //B2: potentiometre SW2 (digital)
@@ -46,8 +21,28 @@ void updateEncoder(void) {
 // bit6: double click B1,
 // bit7: double click B2
 
+uint8_t getEncoder(void) {
+  return pos;
+}
+
+void innitStates(void){
+  boutonState = 0;
+  SET_BIT(boutonState, 4);
+  SET_BIT(boutonState, 5);
+}
+
+void updateEncoder(void) {
+  if((READ_PIN(pinA)) != LOW){  
+    if(digitalRead(pinB) != HIGH){
+      pos--;
+    }else {
+      pos++;
+    }
+  }
+}
 
 void updateButton(){
+  static unsigned long vitesse1 = 0, vitesse2 = 0;
   int SW3 = analogRead(A6);
   
   //bouton SW3
@@ -81,10 +76,7 @@ void updateButton(){
 }
 
 bool bouton(uint8_t bouton, uint8_t select){
-  if (bouton & (1<<int(bouton+select))){
-    return true;
-  }
-  return false;
+  return (boutonState & (1 << int(bouton+select))) != 0;
 }
 
 uint8_t brut(){
@@ -96,5 +88,3 @@ void resetEvents(){
   RESET_BIT(boutonState, 6);
   RESET_BIT(boutonState, 7);
 }
-
-

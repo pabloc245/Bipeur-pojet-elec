@@ -7,14 +7,11 @@ const static uint8_t  pinA = 3;
 const static uint8_t  pinB = 4;
 const static uint8_t  BUZZER = 10;
 
-
 enum Methode{
   ETAT = 0,
   SELECTION = 2,
   DOUBLE = 6
 };
-
-//ETAT = Valeur instantanné
 
 void updateEncoder(void);
 

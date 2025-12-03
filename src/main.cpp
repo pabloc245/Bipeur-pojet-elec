@@ -1,14 +1,9 @@
 #include "notification.hpp"
 #include "ecran.hpp"
 #include "interface.hpp"
-#include <Arduino.h>
-int  i;
-bool selected = false;
- 
-Buffer buffer_notifications = {0, 32, {}};
+Buffer buffer_notifications = {0, 4, {}};
 
 Etats stt = IDLE;
-volatile uint8_t ctn = 0;
 
 /// Setup 
 void setup() {
@@ -34,26 +29,34 @@ void setup() {
 
 /// Loop 
 void loop() {
-  Serial.println(getEncoder());
   updateButton();
 
-
-  if(digitalRead(pinA))
-  Serial.println("yvgbuhk");
   switch(stt){
     case IDLE:
       stt = menu();
       break;
     case CLAVIER:
-      clavier();
+      stt = clavier();
       break;
     case DISPLAY_NOTIF:
-      selected = !selected;
+      stt = messages();
       break;
-    case BUZZER_ON:
+    case PARAMETRE:
+      stt = parametre();
       break;
     default:
       break;
   }
+  if(bouton(1, ETAT)){
+    Notification notif = {
+      0,
+      576,
+      "tes"
+    };
+    add(&buffer_notifications, notif);
+  }
+  Buffer* pBuff = &buffer_notifications;
+  afficherNotifications(pBuff);
+  afficher();
   resetEvents();  
 }
