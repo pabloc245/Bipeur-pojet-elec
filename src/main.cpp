@@ -1,8 +1,11 @@
 #include "notification.hpp"
 #include "ecran.hpp"
 #include "interface.hpp"
-Buffer buffer_notifications = {0, 4, {}};
+#include "radio.hpp"
 
+Buffer buffer_notifications = {0, 4, {}};
+const static uint8_t PIN_RADIO_CE = 7;
+const static uint8_t PIN_RADIO_CSN = 8;
 Etats stt = IDLE;
 
 /// Setup 
@@ -30,7 +33,6 @@ void setup() {
 /// Loop 
 void loop() {
   updateButton();
-
   switch(stt){
     case IDLE:
       stt = menu();
@@ -51,7 +53,7 @@ void loop() {
     Notification notif = {
       0,
       576,
-      "tes"
+      " tes "
     };
     add(&buffer_notifications, notif);
   }

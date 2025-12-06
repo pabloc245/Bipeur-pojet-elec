@@ -16,7 +16,6 @@ const uint8_t AZERTY[4][8] PROGMEM = {
   { 'W',' ',' ',' ',' ',' ',' ','Z' }
 };
 
-const char prefix[] PROGMEM = "msg recu de ";
 
 const char option0[] PROGMEM = "Envoyer";
 const char option1[] PROGMEM = "Messages";
@@ -29,14 +28,14 @@ bool vartop=true;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 const uint8_t PROGMEM bitmap[] = {
-  0x00, 0x00,  // Ligne 1
-  0x00, 0x03,  // Ligne 2
-  0x00, 0x33,  // Ligne 3
-  0x00, 0x33,  // Ligne 4
-  0x03, 0x33,  // Ligne 5
-  0x03, 0x33,  // Ligne 6
-  0x33, 0x33,  // Ligne 7
-  0x33, 0x33   // Ligne 8
+  0x00, 0x00,  
+  0x00, 0x03,  
+  0x00, 0x33,  
+  0x00, 0x33, 
+  0x03, 0x33,  
+  0x03, 0x33,  
+  0x33, 0x33,  
+  0x33, 0x33   
 };
 
 
@@ -46,6 +45,7 @@ void innitDisplay(){
     for(;;);
   }else{
     Serial.println(F("SSD1306 allocation successful"));
+    ///CHARGE LES PRAMETRES DEPUIS L'EPROM///
   }
 }
 
@@ -68,7 +68,7 @@ Etats clavier(){
   top();
   int curseur[2] = {getEncoder() & 0b111, (getEncoder() >>3)& 0b11};
   display.setCursor(0,10);
-  display.print(">>");
+  //display.print(">>");
   display.print(message);
   uint8_t majuscule = bouton(0, SELECTION) ? 0 : 32;
 
@@ -123,36 +123,39 @@ Etats menu(){
 }
 
 void afficherNotifications(Buffer *buffer) {
-  static uint8_t ll = SCREEN_WIDTH+30;  
-  
+  static int ll = SCREEN_WIDTH;  
+  static uint8_t fin = 0;
   if(buffer->taille == 0) return;
   vartop=false;
   Notification notif = buffer->notifications[buffer->taille-1];
   display.setTextColor(BLACK);
-  display.setCursor(ll, 0);
+  display.setCursor(ll, 1);
 
-  char tempBuf[22]; 
+  uint8_t taille = 28+strlen(notif.message);
+  char tempBuf[taille]; 
   uint8_t idx = 0;
-  uint8_t start = ll;
 
-  for (uint8_t i = 0; i < sizeof(prefix); i++) {
-    char c = pgm_read_byte(&prefix[i]);
-    Serial.println(sizeof(prefix));
-    tempBuf[idx++] = c;
-  }
-  itoa(notif.timestamp, &tempBuf[idx], 10);
+  strncpy(&tempBuf[idx], "MSG recu de ", 12);
+  idx += 12;
+
+  itoa(notif.id, &tempBuf[idx], 2);
   idx = strlen(tempBuf);
   
   strcpy_P(&tempBuf[idx], PSTR(" - "));
   idx += 3;
 
-  strncpy(&tempBuf[idx], notif.message, 30);
-  tempBuf[idx + 30] = '\0';
+  itoa(notif.timestamp, &tempBuf[idx], 10);
+  idx = strlen(tempBuf);
 
+  strncpy(&tempBuf[idx], notif.message, strlen(notif.message));
+  idx = strlen(tempBuf);
+
+  tempBuf[fin] = '\0';
   display.print(tempBuf);
 
-  if(ll > 0){  
-    --ll;
+  if(ll > -taille*4){
+    fin = (SCREEN_WIDTH-ll)/6; 
+    ll--;
   }else{
     buffer->taille--;
     ll = SCREEN_WIDTH;
@@ -162,13 +165,29 @@ void afficherNotifications(Buffer *buffer) {
 
 
 /// @brief Les paramètre doivent être ecrit dans l'EPROM
+
+
 Etats parametre(){
+  //AFFICHAGE BARRE DU HAUT
   top();
   display.setCursor(0, 10);
+  //EXEMPLE DE GUI
   display.println(F("Canal radio: "));
   display.println(F("Pseudo: "));
   display.println(F("Son alerte: "));
 
+
+  /*! FONCTION bouton()
+      @brief  permet de savoir dans quel etat son les boutons
+      @param  bouton  0 = gros bouton  1 = bouton potentionmètre
+      @param  select  ETAT = ON ou OFF, 
+      SELECTION = flip à chaque foi que l'on appuie dessus,
+      DOUBLE = double clique
+  */
+
+
+
+  //RETOUR AU MENU PRINCIPALE SI DOUBLE CLICK
   if(bouton(0,DOUBLE)){
     return IDLE;
   }else{
@@ -188,6 +207,7 @@ Etats messages(){
     return DISPLAY_NOTIF;
   }  
 }
+
 void afficher(){
   display.display();
 }

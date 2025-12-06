@@ -16,16 +16,16 @@ struct __attribute__((packed)) RadioPacket // Note the packed attribute.
 };
 
 RadioPacket _radioData;
-NRFLite _radio;
+//NRFLite _radio;
 
 
 void innitRadio(){
-  if (!_radio.init(RADIO_ID, PIN_RADIO_CE, PIN_RADIO_CSN)){
-    Serial.println(F("Cannot communicate with radio"));
-    while (1); // Wait here forever.
-  }else{
-    Serial.println(F("NRF24XX allocation successful"));
-  }
+  // if (!_radio.init(RADIO_ID, PIN_RADIO_CE, PIN_RADIO_CSN)){
+  //   Serial.println(F("Cannot communicate with radio"));
+  //   while (1); // Wait here forever.
+  // }else{
+  //   Serial.println(F("NRF24XX allocation successful"));
+  // }
 
   _radioData.FromRadioId = RADIO_ID;
 }
@@ -42,36 +42,36 @@ int add(Buffer *buffer, Notification new_notification) {
 
 
 
-void testRF(){
+// void testRF(){
   
-  #if ENV_MODE==1 // Server mode
-  _radioData.OnTimeMillis = millis();
+//   #if ENV_MODE==1 // Server mode
+//   _radioData.OnTimeMillis = millis();
 
-  Serial.print("Sending ");
-  Serial.print(_radioData.OnTimeMillis);
-  Serial.print(" ms");
-  if (_radio.send(0, &_radioData, sizeof(_radioData))){ // Note how '&' must be placed in front of the variable name.
-    Serial.println("...Success");
-  }  else{
-    Serial.println("...Failed");
-    _radioData.FailedTxCount++;
-  }
+//   Serial.print("Sending ");
+//   Serial.print(_radioData.OnTimeMillis);
+//   Serial.print(" ms");
+//   if (_radio.send(0, &_radioData, sizeof(_radioData))){ // Note how '&' must be placed in front of the variable name.
+//     Serial.println("...Success");
+//   }  else{
+//     Serial.println("...Failed");
+//     _radioData.FailedTxCount++;
+//   }
 
-  delay(1000);
-  #elif ENV_MODE==0 // Client mode
-  while (_radio.hasData()){
-    _radio.readData(&_radioData); // Note how '&' must be placed in front of the variable name.
+//   delay(1000);
+//   #elif ENV_MODE==0 // Client mode
+//   while (_radio.hasData()){
+//     _radio.readData(&_radioData); // Note how '&' must be placed in front of the variable name.
 
-    String msg = "Radio ";
-    msg += _radioData.FromRadioId;
-    msg += ", ";
-    msg += _radioData.OnTimeMillis;
-    msg += " ms, ";
-    msg += _radioData.FailedTxCount;
-    msg += " Failed TX";
+//     String msg = "Radio ";
+//     msg += _radioData.FromRadioId;
+//     msg += ", ";
+//     msg += _radioData.OnTimeMillis;
+//     msg += " ms, ";
+//     msg += _radioData.FailedTxCount;
+//     msg += " Failed TX";
 
-    Serial.println(msg);
-  }
+//     Serial.println(msg);
+//   }
 
-  #endif
-}
+//   #endif
+// }

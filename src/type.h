@@ -19,7 +19,7 @@ typedef struct {
 typedef struct{
     uint8_t taille;
     uint8_t limite_max;
-    Notification notifications[4];
+    Notification notifications[8];
 
 }Buffer;
 
