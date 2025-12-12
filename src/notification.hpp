@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include "type.h"
 
-int add(Buffer *buffer, Notification new_notification);
+int add(Buffer *buffer, Message new_notification);
 void innitRadio();
 
 #endif

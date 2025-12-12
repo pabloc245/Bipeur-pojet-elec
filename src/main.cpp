@@ -1,9 +1,8 @@
 #include "notification.hpp"
 #include "ecran.hpp"
-#include "interface.hpp"
 #include "radio.hpp"
+#include "stockage.hpp"
 
-Buffer buffer_notifications = {0, 4, {}};
 const static uint8_t PIN_RADIO_CE = 7;
 const static uint8_t PIN_RADIO_CSN = 8;
 Etats stt = IDLE;
@@ -15,8 +14,8 @@ void setup() {
   SPI.begin();
 
   innitDisplay();
-  innitRadio();
-  innitStates();
+  initRadio();
+  initStates();
 
   pinMode(5, OUTPUT);
   pinMode(6, OUTPUT);
@@ -26,39 +25,45 @@ void setup() {
   pinMode(pinA, INPUT);
   pinMode(pinB, INPUT);
   digitalWrite(BUZZER, LOW);
+  clearEeprom();
   delay(1000);
+  for(uint8_t i = 0; i <10; i++){
+    Contact tmp ;
+    strcpy(tmp.pseudo, "user1");
+    tmp.adresse = (uint32_t)i;
+    newContact(&tmp) ;
+  }
 }
-
 
 /// Loop 
 void loop() {
-  updateButton();
-  switch(stt){
-    case IDLE:
-      stt = menu();
-      break;
-    case CLAVIER:
-      stt = clavier();
-      break;
-    case DISPLAY_NOTIF:
-      stt = messages();
-      break;
-    case PARAMETRE:
-      stt = parametre();
-      break;
-    default:
-      break;
-  }
-  if(bouton(1, ETAT)){
-    Notification notif = {
-      0,
-      576,
-      " tes "
-    };
-    add(&buffer_notifications, notif);
-  }
-  Buffer* pBuff = &buffer_notifications;
-  afficherNotifications(pBuff);
-  afficher();
-  resetEvents();  
+  testBoutons();
+
+  // updateBouton();
+  // //envoyerMessage(&messageBuffer, LOW_P);
+  
+  // //Radio();
+  // switch(stt){
+  //   case IDLE:
+  //     stt = menu();
+  //     break;
+  //   case CLAVIER:
+  //     stt = clavier();
+  //     break;
+  //   case CONTACT:
+  //     stt = contact();
+  //     break;
+  //   case MESSAGE:
+  //     stt = messages();
+  //     break;
+  //   case PARAMETRE:
+  //     stt = parametre();
+  //     break;
+  //   default:
+  //     break;
+  // }
+  
+  // afficher();
+  // resetEvents();  
 }
+

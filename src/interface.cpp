@@ -25,7 +25,7 @@ uint8_t getEncoder(void) {
   return pos;
 }
 
-void innitStates(void){
+void initStates(void){
   boutonState = 0;
   SET_BIT(boutonState, 4);
   SET_BIT(boutonState, 5);
@@ -41,7 +41,7 @@ void updateEncoder(void) {
   }
 }
 
-void updateButton(){
+void updateBouton(){
   static unsigned long vitesse1 = 0, vitesse2 = 0;
   int SW3 = analogRead(A6);
   
@@ -79,6 +79,7 @@ bool bouton(uint8_t bouton, uint8_t select){
   return (boutonState & (1 << int(bouton+select))) != 0;
 }
 
+
 uint8_t brut(){
   return boutonState;
 }
@@ -87,4 +88,29 @@ void resetEvents(){
   RESET_BIT(boutonState, 1);
   RESET_BIT(boutonState, 6);
   RESET_BIT(boutonState, 7);
+}
+
+void testBoutons() {
+  updateBouton();
+  Serial.print("ENCODER: ");
+  Serial.print(getEncoder()); 
+  Serial.print("  |  ");
+
+  // Bouton SW3 (bouton = 0)
+  Serial.print("SW3: ");
+  Serial.print(bouton(0, 0) ? "PRESSED " : "------- ");
+  Serial.print(bouton(0, 2) ? "SELECT " : "------ ");
+  Serial.print(bouton(0, 6) ? "DOUBLE " : "------ ");
+  Serial.print("| ");
+
+  // Bouton SW2 (bouton = 1)
+  Serial.print("SW2: ");
+  Serial.print(bouton(1, 0) ? "PRESSED " : "------- ");
+  Serial.print(bouton(1, 2) ? "SELECT " : "------ ");
+  Serial.print(bouton(1, 6) ? "DOUBLE " : "------ ");
+
+  Serial.println();
+  
+  // Efface les événements pour éviter les répétitions
+  resetEvents();
 }
