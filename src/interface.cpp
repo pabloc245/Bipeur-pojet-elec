@@ -6,20 +6,11 @@
 #define READ_PIN(X) ((PIND & (1 << X))!=0)
 
 uint8_t boutonState;
-volatile uint8_t pos = 0;
+volatile int pos = 0;
 
 //B1: bouton SW3 (analogique)
 //B2: potentiometre SW2 (digital)
 
-//VAR BOUTON:  
-// bit0: state B1, 
-// bit1: state B2, 
-// bit2: selection B1, 
-// bit3: selection B2, 
-// bit4: lastState B1, 
-// bit5: lastState B2,
-// bit6: double click B1,
-// bit7: double click B2
 
 uint8_t getEncoder(void) {
   return pos;
@@ -33,7 +24,7 @@ void initStates(void){
 
 void updateEncoder(void) {
   if((READ_PIN(pinA)) != LOW){  
-    if(digitalRead(pinB) != HIGH){
+    if(READ_PIN(pinB) != HIGH){
       pos--;
     }else {
       pos++;
@@ -41,6 +32,16 @@ void updateEncoder(void) {
   }
 }
 
+
+//VAR BOUTON:  
+// bit0: state B1, 
+// bit1: state B2, 
+// bit2: selection B1, 
+// bit3: selection B2, 
+// bit4: lastState B1, 
+// bit5: lastState B2,
+// bit6: double click B1,
+// bit7: double click B2
 void updateBouton(){
   static unsigned long vitesse1 = 0, vitesse2 = 0;
   int SW3 = analogRead(A6);
@@ -92,22 +93,22 @@ void resetEvents(){
 
 void testBoutons() {
   updateBouton();
-  Serial.print("ENCODER: ");
+  Serial.print(F("ENCODER: "));
   Serial.print(getEncoder()); 
-  Serial.print("  |  ");
+  Serial.print(F("  |  "));
 
   // Bouton SW3 (bouton = 0)
-  Serial.print("SW3: ");
-  Serial.print(bouton(0, 0) ? "PRESSED " : "------- ");
-  Serial.print(bouton(0, 2) ? "SELECT " : "------ ");
-  Serial.print(bouton(0, 6) ? "DOUBLE " : "------ ");
-  Serial.print("| ");
+  Serial.print(F("SW3: "));
+  Serial.print(bouton(0, 0) ? F("PRESSED ") : F("------- "));
+  Serial.print(bouton(0, 2) ? F("SELECT ") : F("------ "));
+  Serial.print(bouton(0, 6) ? F("DOUBLE ") : F("------ "));
+  Serial.print(F("| "));
 
   // Bouton SW2 (bouton = 1)
-  Serial.print("SW2: ");
-  Serial.print(bouton(1, 0) ? "PRESSED " : "------- ");
-  Serial.print(bouton(1, 2) ? "SELECT " : "------ ");
-  Serial.print(bouton(1, 6) ? "DOUBLE " : "------ ");
+  Serial.print(F("SW2: "));
+  Serial.print(bouton(1, 0) ? F("PRESSED ") : F("------- "));
+  Serial.print(bouton(1, 2) ? F("SELECT " ): F("------ "));
+  Serial.print(bouton(1, 6) ? F("DOUBLE ") : F("------ "));
 
   Serial.println();
   

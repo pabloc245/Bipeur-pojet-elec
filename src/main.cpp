@@ -9,7 +9,7 @@ Etats stt = IDLE;
 
 /// Setup 
 void setup() {
-  attachInterrupt(digitalPinToInterrupt(pinA), updateEncoder, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(pinA), updateEncoder, RISING);
   Serial.begin(9600);
   SPI.begin();
 
@@ -26,44 +26,38 @@ void setup() {
   pinMode(pinB, INPUT);
   digitalWrite(BUZZER, LOW);
   clearEeprom();
+  loadCounter();
   delay(1000);
-  for(uint8_t i = 0; i <10; i++){
-    Contact tmp ;
-    strcpy(tmp.pseudo, "user1");
-    tmp.adresse = (uint32_t)i;
-    newContact(&tmp) ;
-  }
 }
 
 /// Loop 
 void loop() {
-  testBoutons();
 
-  // updateBouton();
-  // //envoyerMessage(&messageBuffer, LOW_P);
-  
-  // //Radio();
-  // switch(stt){
-  //   case IDLE:
-  //     stt = menu();
-  //     break;
-  //   case CLAVIER:
-  //     stt = clavier();
-  //     break;
-  //   case CONTACT:
-  //     stt = contact();
-  //     break;
-  //   case MESSAGE:
-  //     stt = messages();
-  //     break;
-  //   case PARAMETRE:
-  //     stt = parametre();
-  //     break;
-  //   default:
-  //     break;
-  // }
-  
-  // afficher();
-  // resetEvents();  
+  updateBouton();
+  //Serial.println(getEncoder());
+
+  //readMessage(&messageBuffer, 0);
+  //Radio();
+  switch(stt){
+    case IDLE:
+      stt = menu();
+      break;
+    case CLAVIER:
+      stt = clavier();
+      break;
+    case CONTACT:
+      stt = contact();
+      break;
+    case MESSAGE:
+      stt = messages(false);
+      break;
+    case PARAMETRE:
+      stt = parametre();
+      break;
+    default:
+      break;
+  }
+  afficher();
+  resetEvents();  
 }
 

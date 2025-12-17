@@ -83,10 +83,11 @@ Etats clavier(){
   display.print(messageBuffer.message);
   static uint8_t state = 0;
   if(bouton(0, ETAT)) {
-      state = (state + 1) & 0b11;
+    state = (state + 1) & 0b11;
   }
   signed char majuscule = (state & 0b10) ? ((state & 1) ? -32 : 32) : 0;
 
+  if(bouton(1, DOUBLE))writeMessage(&messageBuffer);
 
   if(bouton(1, ETAT)){
     char d = pgm_read_byte(&AZERTY[curseur[1]][curseur[0]]);
@@ -119,12 +120,11 @@ Etats clavier(){
 Etats menu(){
   top();
   uint8_t taille = sizeof(options) / sizeof(options[0]);
-  display.drawBitmap(SCREEN_WIDTH>>1, SCREEN_HEIGHT>>1, speaker8x8, 16, 8, WHITE);
+  //display.drawBitmap(SCREEN_WIDTH>>1, SCREEN_HEIGHT>>1, speaker8x8, 16, 8, WHITE);
   int shift = ((getEncoder() & 0b11) *4) + 10;
   for(int i = 0; i < taille; i++){
     char buffer[20];
     strcpy_P(buffer, (char*)pgm_read_word(&(options[i])));
-
     display.setCursor(5, 13*i + 14);
     display.setTextColor(WHITE);
     display.print(buffer);
@@ -140,29 +140,30 @@ Etats menu(){
   }
 }
 
-void afficherNotifications(Buffer *buffer) {
+void afficherNotifications() {
   static int ll = SCREEN_WIDTH;  
   static uint8_t fin = 0;
-  if(buffer->taille == 0) return;
-  vartop=false;
-  Message notif = buffer->notifications[buffer->taille-1];
+  // if(buffer->taille == 0) return;
+  // vartop=false;
+  // Message notif = buffer->notifications[buffer->taille-1];
+
   display.setTextColor(BLACK);
   display.setCursor(ll, 1);
 
-  uint8_t taille = 28+strlen(notif.message)+8;
+  uint8_t taille = 28+strlen(messageBuffer.message)+8;
   char tempBuf[taille]; 
   uint8_t idx = 0;
 
   strncpy(&tempBuf[idx], "MSG recu de ", 12);
   idx += 12;
 
-  strncpy(&tempBuf[idx], notif.pseudo, strlen(notif.pseudo));
+  strncpy(&tempBuf[idx], messageBuffer.pseudo, strlen(messageBuffer.pseudo));
   idx +=8;
   
   strcpy_P(&tempBuf[idx], PSTR(" - "));
   idx += 3;
 
-  strncpy(&tempBuf[idx], notif.message, strlen(notif.message));
+  strncpy(&tempBuf[idx], messageBuffer.message, strlen(messageBuffer.message));
   idx = strlen(tempBuf);
 
   tempBuf[fin] = '\0';
@@ -172,29 +173,28 @@ void afficherNotifications(Buffer *buffer) {
     fin = (SCREEN_WIDTH-ll)/6; 
     ll--;
   }else{
-    buffer->taille--;
+    //buffer->taille--;
     ll = SCREEN_WIDTH;
     vartop = true;
   }
 }
 
-
-/**
- * @brief Les paramètre doivent être ecrit dans l'EPROM
- */
-
-
 Etats parametre(){
-  //AFFICHAGE BARRE DU HAUT
   top();
-  display.setCursor(0, 10);
-  //EXEMPLE DE GUI
-  display.println(F("Canal radio: "));
-  display.println(F("Pseudo: "));
-  display.println(F("Son alerte: "));
+
+  display.setCursor(3, 15);
+  display.println(F("Canal radio < 1 >"));
+  display.setCursor(3, 25);
+  display.print(F("Pseudo: "));
+  display.setTextColor(BLACK, WHITE);
+  display.println(F("user123"));
+  display.setTextColor(WHITE);
+  display.setCursor(3, 35);
+  display.drawBitmap(7*6, 35, speaker8x8, 16, 8, WHITE);
+  display.drawRoundRect(11*6, 33, 8*7, 12, 2, WHITE);
+  display.println(F("Alerte     melodie1"));
 
 
-  //RETOUR AU MENU PRINCIPALE SI DOUBLE CLICK
   if(bouton(0,DOUBLE)){
     return IDLE;
   }else{
@@ -203,24 +203,53 @@ Etats parametre(){
 }
 
 
-Etats messages(){
+Etats messages(bool first){
   top();
-  uint8_t liste[5];
-  Contact tmp;
-  lireContacts(&tmp, curseur);
-  uint8_t taille = filtreMessage(liste, tmp.pseudo);
 
-  if(taille>0){
-      display.setCursor(20,20);
-      display.print(F("Il y a "));
-      display.print(taille);
-      display.print(F(" messages de "));
-      display.println(tmp.pseudo);
-    }else{
-      display.setCursor((SCREEN_WIDTH>>1) - 6*5, SCREEN_HEIGHT>>1);
-      display.print(F("Il n'y a pas de message de "));
-      display.println(tmp.pseudo);
+  static uint8_t n = 0;
+  static uint8_t lastn = 0;
+  static uint8_t taille = 0;
+  if(first || n!=lastn){
+    uint8_t liste[5];
+    Contact tmp;
+    lireContacts(&tmp, curseur);
+
+    taille = filtreMessage(liste, tmp.adresse);
+    Serial.print(F("liste"));
+    for(uint8_t i = 0; i < taille; i++){
+      Serial.print(liste[i]);
     }
+    Serial.print(F("Contact: "));
+    Serial.print(tmp.pseudo);
+    Serial.print(F(" addr: "));
+    Serial.println(tmp.adresse, HEX);
+
+
+    Serial.print(F("Il y a "));
+    Serial.print(taille);
+    Serial.println(F(" messages"));
+    if(n>0){
+      readMessage(&messageBuffer, liste[n]);
+    } 
+  }
+
+  lastn = n;
+  if(taille>0){
+    display.setCursor(20,20);
+    display.print(taille);
+    display.print(F(" messages de "));
+    display.println(messageBuffer.pseudo);
+    display.println(messageBuffer.message);
+  }else{
+    display.setCursor((SCREEN_WIDTH>>1) - 6*5, SCREEN_HEIGHT>>1);
+    display.print(F("Il n'y a pas de message de "));
+    display.println(messageBuffer.pseudo);
+  }
+  if(bouton(1, ETAT)){
+    if((n+1)<taille){
+      n++;
+    }
+  }
 
   if(bouton(0,DOUBLE)){
     return IDLE;
@@ -234,19 +263,22 @@ Etats contact(){
   curseur = (uint16_t)(getEncoder()%nbContact);
   uint8_t shift = curseur>= 5 ? 64 : 0;
 
+  display.setCursor(25, 10);
+  display.print("CONTACTS");
   for(uint8_t i = 0; i < nbContact; i++){
     display.setTextColor(WHITE);
     Contact tmp;
     lireContacts(&tmp, i);
-    display.setCursor(15, 15 +i*10 - shift);
+    display.setCursor(15, 20+ i*11 - shift);
     display.print(tmp.pseudo);
-    display.setCursor(70, 15 + i*10 - shift);
+    display.setCursor(70, 20 + i*11 - shift);
     display.print(tmp.adresse, HEX);
-    display.setCursor(0, 15 + 10 * curseur -shift);
+    display.setCursor(0, 20 + 11 * curseur - shift);
     display.print(">");
   }
 
   if(bouton(0,ETAT)){
+    messages(true);
     return MESSAGE;
   }
   if(bouton(1, ETAT)){

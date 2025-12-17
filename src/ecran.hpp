@@ -19,7 +19,7 @@ void innitDisplay();
 Etats clavier();
 void afficherNotifications(Buffer *buffer);
 Etats parametre();
-Etats messages();
+Etats messages(bool first);
 void afficher();
 Etats contact();
 

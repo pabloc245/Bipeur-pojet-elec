@@ -20,6 +20,7 @@ enum Priorite{
 typedef  struct __attribute__((packed)){
     char pseudo[7];
     char message[30];
+    uint32_t adresse;
 } Message;
 
 typedef struct{
@@ -34,9 +35,9 @@ typedef struct  __attribute__((packed)){
   uint8_t alerte;
 }Parametre;
 
-typedef struct  __attribute__((packed)){
-  char pseudo[7];
-  uint32_t adresse;
-}Contact;
+typedef struct __attribute__((packed)){
+  char pseudo[7];  
+  uint32_t adresse;      
+} Contact; 
 
 #endif 
