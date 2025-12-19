@@ -7,9 +7,29 @@
 
 uint8_t boutonState;
 volatile int pos = 0;
+bool play = false;
+
 
 //B1: bouton SW3 (analogique)
 //B2: potentiometre SW2 (digital)
+
+const uint16_t melodies[3][6] PROGMEM = {
+  {670, 555, 555, 495, 555, 660},
+  {392, 392, 392, 311, 555, 660}, 
+  {262, 392, 349, 330, 294, 523}, 
+};
+
+const uint16_t durations[3][6] PROGMEM = {
+  {80, 80, 350, 110, 110, 180},
+  {250, 250, 250, 1000, 0, 0},
+  {500, 500, 125, 125, 125, 500},
+};
+
+const uint8_t pauses[3][6] PROGMEM = {
+  {40, 0, 5, 5, 5, 0},
+  {50, 50, 50, 250, 0, 0},
+  {50, 50, 30, 30, 30, 50},
+}; 
 
 
 uint8_t getEncoder(void) {
@@ -32,6 +52,34 @@ void updateEncoder(void) {
   }
 }
 
+
+void alerte(){
+  static uint8_t count = 0;
+  static unsigned long temp = 0;
+  if(play && millis() - temp > 700){
+    for (uint8_t i = 0; i < 6; i++) { 
+      uint16_t freq = pgm_read_word(&melodies[param.alerte][i]);
+      uint16_t duration = pgm_read_word(&durations[param.alerte][i]);
+      uint8_t pause = pgm_read_byte(&pauses[param.alerte][i]);
+      
+      Serial.print(freq);
+      Serial.print(duration);
+      Serial.println(pause == 250 ? 500 : pause);
+      tone(BUZZER, freq);  // Plus de division par 3
+      delay(duration);   
+      noTone(BUZZER);        
+      if (pause > 0) {
+        delay(pause);    
+      }
+    }
+    temp =millis();
+    count++;
+  }
+  if(bouton(1, ETAT) || bouton(2, ETAT) || count > 5){
+    play = false;
+    count = 0;
+  }
+}
 
 //VAR BOUTON:  
 // bit0: state B1, 
@@ -80,38 +128,9 @@ bool bouton(uint8_t bouton, uint8_t select){
   return (boutonState & (1 << int(bouton+select))) != 0;
 }
 
-
-uint8_t brut(){
-  return boutonState;
-}
 void resetEvents(){
   RESET_BIT(boutonState, 0);
   RESET_BIT(boutonState, 1);
   RESET_BIT(boutonState, 6);
   RESET_BIT(boutonState, 7);
-}
-
-void testBoutons() {
-  updateBouton();
-  Serial.print(F("ENCODER: "));
-  Serial.print(getEncoder()); 
-  Serial.print(F("  |  "));
-
-  // Bouton SW3 (bouton = 0)
-  Serial.print(F("SW3: "));
-  Serial.print(bouton(0, 0) ? F("PRESSED ") : F("------- "));
-  Serial.print(bouton(0, 2) ? F("SELECT ") : F("------ "));
-  Serial.print(bouton(0, 6) ? F("DOUBLE ") : F("------ "));
-  Serial.print(F("| "));
-
-  // Bouton SW2 (bouton = 1)
-  Serial.print(F("SW2: "));
-  Serial.print(bouton(1, 0) ? F("PRESSED ") : F("------- "));
-  Serial.print(bouton(1, 2) ? F("SELECT " ): F("------ "));
-  Serial.print(bouton(1, 6) ? F("DOUBLE ") : F("------ "));
-
-  Serial.println();
-  
-  // Efface les événements pour éviter les répétitions
-  resetEvents();
 }

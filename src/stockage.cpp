@@ -1,28 +1,35 @@
 #include "stockage.hpp"
 
-int nbMessage = 0;
-int nbContact = 0;
+uint8_t nbMessage = 0;
+uint8_t nbContact = 0;
 bool existsInEEPROM(const Contact* msg);
 
 void saveCounter() {
-    EEPROM.put(COUNTER_ADDRESS, nbMessage);
+    EEPROM.put(MESSAGE_COUNTER_ADDRESS, nbMessage);
+    EEPROM.put(CONATACT_COUNTER_ADDRESS, nbContact);
 }
 
 void loadCounter() {
-    EEPROM.get(COUNTER_ADDRESS, nbMessage);
+    EEPROM.get(START_PARAMETRE, param);
+    Serial.println(F("Destockake de param"));
+    Serial.print(F("Pseudo: "));
+    Serial.println(param.pseudo);
+    Serial.print(F("canal: "));
+    Serial.println(param.canal);
+    EEPROM.get(MESSAGE_COUNTER_ADDRESS, nbMessage);
     if((unsigned int)nbMessage == 0xFFFF) nbMessage = 0; 
+    EEPROM.get(CONATACT_COUNTER_ADDRESS, nbContact);
+    if((unsigned int)nbContact == 0xFFFF) nbContact = 0; 
 }
 
 uint8_t writeMessage(Message *const msg) {
-    int address = (nbMessage % MAX_MESSAGES) * sizeof(Message);
+    int address = nbMessage * sizeof(Message);
     Contact newcont;
     newcont.adresse = msg->adresse;
     strcpy(newcont.pseudo, msg->pseudo);
     newContact(&newcont);
-    Serial.print(F("waddr"));
-    Serial.println(address);
     EEPROM.put(address, *msg);
-    nbMessage++;
+    nbMessage += nbMessage >= MAX_MESSAGES - 1 ? -(MAX_MESSAGES - 1) : 1;
     saveCounter();
     return 1;
 }
@@ -73,7 +80,7 @@ uint8_t newContact(Contact *const contact) {
     Serial.println(address);
 
     EEPROM.put(address, *contact);
-    nbContact ++; 
+    nbContact += nbContact >= MAX_CONTACT - 1 ? -(MAX_CONTACT - 1) : 1;
     return 0;
 }
 
@@ -109,6 +116,7 @@ void lireContacts(Contact *contact, const uint8_t offset) {
     // Serial.print(F("Pseudo: "));
     // Serial.println(contact->pseudo);
 }
+
 
 void clearEeprom(){
   for (unsigned int i = 0 ; i < EEPROM.length(); i++) {

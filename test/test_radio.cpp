@@ -49,6 +49,7 @@ void test_payload_impair(void) {
                  ((uint32_t)data[1] << 18) | 
                  ((uint32_t)data[2] << 10);
     TEST_ASSERT_EQUAL((0xCDDEE<<10), p);
+    
 }
 
 void test_radio_communication(void){

@@ -40,7 +40,7 @@ const int8_t index_of[] PROGMEM = {-1,  0,  1, 18,  2,  5, 19, 11,  3, 29,
                             7, 22, 28, 26, 21, 25,  9, 16, 13, 14,
                            24, 15};
 
-#define POCSAG_DATA_MASK   0x7FFFFE00;
+#define POCSAG_DATA_MASK   0xFFFFF800  // bit 31=1, bits 31-11=données
 #define POCSAG_BCH_N       31
 #define POCSAG_BCH_K       21
 
@@ -89,7 +89,6 @@ bool CBCH3121::decode(uint32_t& data, uint16_t& errors)
   if (m_S1 == -1 && m_S3 == -1) {
     // return if no errors
     errors += check_parity(data);
-    Serial.println("GOOD");
     return true;
   }
   else {

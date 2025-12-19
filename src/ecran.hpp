@@ -16,13 +16,12 @@ const static uint8_t  SCREEN_HEIGHT = 64;
 void affichage();
 Etats menu();
 void innitDisplay();
-Etats clavier();
+Etats clavier(Etats exit);
 void afficherNotifications(Buffer *buffer);
 Etats parametre();
 Etats messages(bool first);
 void afficher();
 Etats contact();
-
 
 
 #endif

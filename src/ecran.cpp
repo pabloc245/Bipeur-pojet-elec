@@ -5,6 +5,7 @@
 #define HAUTEUR_RECT 7
 #define LARGEUR_RECT 45
 
+
 uint8_t cursor_pos = 0;
 uint8_t curseur = 0; 
 
@@ -24,7 +25,6 @@ const char* const options[] PROGMEM = {option0, option1, option2, option3};
 bool vartop=true;
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
-
 
 const uint8_t PROGMEM bitmap[] = {
   0x00, 0x00,  
@@ -75,25 +75,49 @@ void top(){
 
 }
 
-Etats clavier(){
+Etats clavier(Etats exit){
   top();
   int curseur[2] = {getEncoder() & 0b111, (getEncoder() >>3)& 0b11};
   display.setCursor(0,10);
   display.print(">");
   display.print(messageBuffer.message);
   static uint8_t state = 0;
-  if(bouton(0, ETAT)) {
+
+  if(bouton(1, ETAT)) {
     state = (state + 1) & 0b11;
   }
   signed char majuscule = (state & 0b10) ? ((state & 1) ? -32 : 32) : 0;
 
-  if(bouton(1, DOUBLE))writeMessage(&messageBuffer);
+  if(bouton(0, DOUBLE) && exit == CLAVIER_M){
+    display.clearDisplay();
+    display.setCursor(15, 30);
+    display.print(F("ENVOIE MESSAGE"));  
+    for(uint8_t i = 0; i < 14; i++){
+      display.fillRect(15+6*i, 40, 5, 5, WHITE);
+      afficher();
+    }
+    setRole(TX);
+    envoyerMessage(&messageBuffer, LOW_P);
+    setRole(RX);  
+    display.clearDisplay();
+    display.setCursor(15,30);
+    display.print(F("MESSAGE ENVOYE")); 
+    afficher();
+    delay(700);
+    return IDLE;
+  }else if(bouton(0, DOUBLE) && exit == CLAVIER_P){
+    for(uint8_t i = 0; i < 7 ; i++){
+      param.pseudo[i] = messageBuffer.message[i];
+    }
+    return PARAMETRE;
+  }
 
   if(bouton(1, ETAT)){
     char d = pgm_read_byte(&AZERTY[curseur[1]][curseur[0]]);
     messageBuffer.message[cursor_pos] = d+majuscule;
     cursor_pos++;
   }
+
   for (uint8_t i = 0; i < 4; i++){
     for(uint8_t j= 0; j < 8; j++){
       display.setCursor(j*LARGEUR_CASE + 5 , i*HAUTEUR_CASE+22);
@@ -110,10 +134,11 @@ Etats clavier(){
       }
     }
   }   
+
   if(bouton(0, DOUBLE)){
     return IDLE;
   }else{
-    return CLAVIER;
+    return exit;
   }
 }
 
@@ -181,21 +206,51 @@ void afficherNotifications() {
 
 Etats parametre(){
   top();
+  uint8_t curs = getEncoder()%3;
 
   display.setCursor(3, 15);
-  display.println(F("Canal radio < 1 >"));
-  display.setCursor(3, 25);
-  display.print(F("Pseudo: "));
-  display.setTextColor(BLACK, WHITE);
-  display.println(F("user123"));
+  display.print(F("Canal radio < "));
+  if(curs == 0){
+    display.setTextColor(BLACK, WHITE);
+    if(bouton(1, ETAT)){
+      param.canal+=1;
+      param.canal &= 0b111;
+    }
+  }
+  display.print(param.canal);
   display.setTextColor(WHITE);
-  display.setCursor(3, 35);
-  display.drawBitmap(7*6, 35, speaker8x8, 16, 8, WHITE);
-  display.drawRoundRect(11*6, 33, 8*7, 12, 2, WHITE);
-  display.println(F("Alerte     melodie1"));
+  display.println(" >");
 
+  display.setCursor(3, 25);
+  display.print(F("Pseudo "));
+  if(curs == 1){
+    display.setTextColor(BLACK, WHITE);
+    if(bouton(1, ETAT)){
+      return CLAVIER_P;
+    }
+  }
+  display.drawRoundRect(40, 23, 8*7, 11, 2, WHITE);
+  display.println(param.pseudo);
+  display.setTextColor(WHITE);
+
+
+  display.setCursor(3, 35);
+  display.drawBitmap(8*6, 35, speaker8x8, 16, 8, WHITE);
+  display.print(F("Alerte     < "));
+  if(curs == 2){
+    display.setTextColor(BLACK, WHITE);
+    if(bouton(1, ETAT)){
+      param.alerte+=1;
+      param.alerte &= 0b1;
+      play = true;
+    }
+  }
+  display.print(param.alerte);
+  display.setTextColor( WHITE);
+  display.print(F(" >"));
 
   if(bouton(0,DOUBLE)){
+    EEPROM.put(START_PARAMETRE, param);
     return IDLE;
   }else{
     return PARAMETRE;
@@ -235,13 +290,14 @@ Etats messages(bool first){
 
   lastn = n;
   if(taille>0){
-    display.setCursor(20,20);
-    display.print(taille);
-    display.print(F(" messages de "));
+    display.setCursor(5,11);
+    display.print(n+1);
+    display.print(F(" message de "));
     display.println(messageBuffer.pseudo);
     display.println(messageBuffer.message);
+    display.drawRoundRect(5,21,SCREEN_WIDTH-10,SCREEN_HEIGHT-25,3,WHITE);
   }else{
-    display.setCursor((SCREEN_WIDTH>>1) - 6*5, SCREEN_HEIGHT>>1);
+    display.setCursor(13, SCREEN_HEIGHT>>1);
     display.print(F("Il n'y a pas de message de "));
     display.println(messageBuffer.pseudo);
   }
@@ -261,32 +317,33 @@ Etats messages(bool first){
 Etats contact(){
   top();
   curseur = (uint16_t)(getEncoder()%nbContact);
-  uint8_t shift = curseur>= 5 ? 64 : 0;
+  uint8_t shift = curseur >= 5 ? 64 : 0;
 
-  display.setCursor(25, 10);
-  display.print("CONTACTS");
+  display.setCursor(10, 12);
+  display.print(F("PSEUDO     ADRESSE"));
+  display.drawRect(5, 10, SCREEN_WIDTH-10, 11, WHITE);
   for(uint8_t i = 0; i < nbContact; i++){
-    display.setTextColor(WHITE);
     Contact tmp;
     lireContacts(&tmp, i);
-    display.setCursor(15, 20+ i*11 - shift);
+    display.drawRect(5, 10+(i+1)*11, SCREEN_WIDTH-10, 10, WHITE);
+    display.setTextColor(WHITE);
+    display.setCursor(10, 23 + i*11 - shift);
     display.print(tmp.pseudo);
-    display.setCursor(70, 20 + i*11 - shift);
+    display.setCursor(75, 23 + i*11 - shift);
     display.print(tmp.adresse, HEX);
-    display.setCursor(0, 20 + 11 * curseur - shift);
+    display.setCursor(0, 23 + 11 * curseur - shift);
     display.print(">");
   }
 
-  if(bouton(0,ETAT)){
-    messages(true);
-    return MESSAGE;
-  }
+
   if(bouton(1, ETAT)){
     return IDLE;
+  }else if(bouton(0,ETAT)){
+    messages(true);
+    return MESSAGE;
   }else{  
     return CONTACT;
   } 
-
 }
 
 void afficher(){

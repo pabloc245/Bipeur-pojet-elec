@@ -3,12 +3,14 @@
 
 typedef unsigned char uint8_t;
 
+
 enum Etats {
   IDLE = -1,
-  CLAVIER = 0,
+  CLAVIER_M = 0,
   CONTACT = 1,
   PARAMETRE = 2,
-  MESSAGE = 5
+  MESSAGE = 5,
+  CLAVIER_P = 12
 };
 
 enum Priorite{
@@ -39,5 +41,7 @@ typedef struct __attribute__((packed)){
   char pseudo[7];  
   uint32_t adresse;      
 } Contact; 
+
+extern Parametre param;
 
 #endif 

@@ -6,7 +6,7 @@
 const static uint8_t PIN_RADIO_CE = 7;
 const static uint8_t PIN_RADIO_CSN = 8;
 Etats stt = IDLE;
-
+Parametre param = {"use12", 0, 0};
 /// Setup 
 void setup() {
   attachInterrupt(digitalPinToInterrupt(pinA), updateEncoder, RISING);
@@ -24,26 +24,34 @@ void setup() {
   pinMode(BUZZER, OUTPUT);
   pinMode(pinA, INPUT);
   pinMode(pinB, INPUT);
-  digitalWrite(BUZZER, LOW);
+  noTone(BUZZER);
+
   clearEeprom();
   loadCounter();
-  delay(1000);
+
+  // messageBuffer.adresse = 0xFFFFFFF;
+  // writeMessage(&messageBuffer);
+  // writeMessage(&messageBuffer);
+  // writeMessage(&messageBuffer);
+  // messageBuffer.adresse = 0xFFFFF;
+  // writeMessage(&messageBuffer);
+  strcpy(messageBuffer.pseudo, "user");
+  strcpy(messageBuffer.message, "testttttttttt");
+  //envoyerMessage(&messageBuffer, LOW_P);
 }
 
+static unsigned long timer =0;
 /// Loop 
 void loop() {
-
   updateBouton();
-  //Serial.println(getEncoder());
-
+  //writeMessage(&messageBuffer);
   //readMessage(&messageBuffer, 0);
-  //Radio();
   switch(stt){
     case IDLE:
       stt = menu();
       break;
-    case CLAVIER:
-      stt = clavier();
+    case CLAVIER_M:
+      stt = clavier(CLAVIER_M);
       break;
     case CONTACT:
       stt = contact();
@@ -54,9 +62,17 @@ void loop() {
     case PARAMETRE:
       stt = parametre();
       break;
+    case CLAVIER_P:
+      stt = clavier(CLAVIER_P);
     default:
       break;
   }
+
+  if(millis() - timer > 1000 || getpack()>0){
+    lireMessage(&messageBuffer);
+    timer = millis();
+  }
+  alerte();
   afficher();
   resetEvents();  
 }
